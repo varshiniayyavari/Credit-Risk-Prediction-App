@@ -1,9 +1,11 @@
 import streamlit as st
 import pickle
 import numpy as np
+import pandas as pd
 
 # Load model, scaler, feature names
-model = pickle.load(open("credit_model.pkl", "rb"))
+with open("credit_model.pkl", "rb") as f:
+    model = pickle.load(f)
 scaler = pickle.load(open("scaler.pkl", "rb"))
 feature_names = pickle.load(open("feature_names.pkl", "rb"))
 
