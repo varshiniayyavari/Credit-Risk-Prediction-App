@@ -1,44 +1,46 @@
 import streamlit as st
 import pickle
-import numpy as np
 import pandas as pd
 
-# Load model, scaler, feature names
-with open("credit_model.pkl", "rb") as f:
-    model = pickle.load(f)
+# Load trained pipeline
+model = pickle.load(open("credit_model.pkl", "rb"))
 
-scaler = pickle.load(open("scaler.pkl", "rb"))
-feature_names = pickle.load(open("feature_names.pkl", "rb"))
+st.title("💳 Credit Risk Prediction App (Professional Model)")
 
-st.title("💳 Credit Risk Prediction App")
+st.write("Enter customer details:")
 
-st.write("Enter customer details below:")
-
-# User Inputs (Main numeric features)
+# Numeric Inputs
 person_age = st.number_input("Age", min_value=18, max_value=100, value=30)
 person_income = st.number_input("Annual Income", min_value=0, value=50000)
-person_emp_length = st.number_input("Employment Length (years)", min_value=0, value=2)
+person_emp_length = st.number_input("Employment Length", min_value=0, value=2)
 loan_amnt = st.number_input("Loan Amount", min_value=0, value=10000)
+loan_int_rate = st.number_input("Interest Rate", min_value=0.0, value=10.0)
+loan_percent_income = st.number_input("Loan Percent Income", min_value=0.0, value=0.2)
+cb_person_cred_hist_length = st.number_input("Credit History Length", min_value=0, value=5)
+
+# Categorical Inputs
+home_ownership = st.selectbox("Home Ownership", ["RENT", "OWN", "MORTGAGE", "OTHER"])
+loan_intent = st.selectbox("Loan Intent", ["EDUCATION", "MEDICAL", "VENTURE", "PERSONAL", "DEBTCONSOLIDATION", "HOMEIMPROVEMENT"])
+loan_grade = st.selectbox("Loan Grade", ["A", "B", "C", "D", "E", "F", "G"])
+cb_person_default_on_file = st.selectbox("Default History", ["Y", "N"])
 
 if st.button("Predict"):
 
-    # Create dictionary with all 22 features set to 0
-    input_dict = dict.fromkeys(feature_names, 0)
+    input_df = pd.DataFrame([{
+        "person_age": person_age,
+        "person_income": person_income,
+        "person_emp_length": person_emp_length,
+        "loan_amnt": loan_amnt,
+        "loan_int_rate": loan_int_rate,
+        "loan_percent_income": loan_percent_income,
+        "cb_person_cred_hist_length": cb_person_cred_hist_length,
+        "home_ownership": home_ownership,
+        "loan_intent": loan_intent,
+        "loan_grade": loan_grade,
+        "cb_person_default_on_file": cb_person_default_on_file
+    }])
 
-    # Fill user-entered values
-    input_dict["person_age"] = person_age
-    input_dict["person_income"] = person_income
-    input_dict["person_emp_length"] = person_emp_length
-    input_dict["loan_amnt"] = loan_amnt
-
-    # Convert to DataFrame
-    input_df = pd.DataFrame([input_dict])
-
-    # Scale
-    input_scaled = scaler.transform(input_df)
-
-    # Predict
-    prediction = model.predict(input_scaled)
+    prediction = model.predict(input_df)
 
     if prediction[0] == 1:
         st.error("⚠ High Risk of Default")
